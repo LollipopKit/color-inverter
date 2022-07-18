@@ -1,4 +1,5 @@
 import argparse
+import os
 import re
 import sys
 
@@ -183,7 +184,8 @@ def invert_one(s: str) -> str:
                 f = float(s)
                 if f > 1 or f < 0:
                     raise ValueError(f'Invalid float: {f} not in [0, 1]')
-                return str(1 - f)
+                # return f, because f is alpha (in rgb'a')
+                return str(f)
             except ValueError:
                 raise ValueError(f'Invalid float: {s}')
         raise ValueError(f'Invalid intstr: {s}')
@@ -243,7 +245,7 @@ def convert_namaed_color_list():
 def pri(pre: str, msg):
     if not debug:
         return
-    print(f'[{pre} {msg}')
+    print(f'[{pre}] {msg}')
 
 
 if __name__ == '__main__':
@@ -251,23 +253,39 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='css color inverter')
     parser.add_argument('input', type=str, help='input file path')
-    parser.add_argument('-w', '--write', action='store_true', help='write result to output file')
-    parser.add_argument('-d', '--debug', action='store_true', help='debug')
+    parser.add_argument('-w', '--write', default=True, action='store_true', help='write result to output file')
+    parser.add_argument('-v', '--verbose', default=False, action='store_true', help='verbose mode')
+    parser.add_argument('-d', '--dir', default=False, action='store_true', help='input dir path')
+    parser.add_argument('-o', '--override', default=False, action='store_true', help='override input file')
     args = parser.parse_args()
 
-    debug = args.debug
+    debug = args.verbose
     if args.input is None:
         print('No input file specified')
         sys.exit(1)
-    filename = args.input
-    filename_splited = filename.split('.')
-    file_pre = filename_splited[0]
-    file_suf = filename_splited[1]
-    with open(filename, 'r') as f:
-        css_raw = f.read()
-    css_raw = do_invert(css_raw)
-    if args.write:
-        with open(f'{file_pre}.inverted.{file_suf}', 'w') as f:
-            f.write(css_raw)
+    file_paths = []
+    if args.dir:
+        if not os.path.isdir(args.input):
+            print(f'Invalid dir: {args.input}')
+            sys.exit(1)
+        for root, dirs, files in os.walk(args.input):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_paths.append(file_path)
     else:
-        print(css_raw)
+        file_paths.append(args.input)
+
+    pri('file_paths', file_paths)
+
+    for file_path in file_paths:
+        filename_splited = file_path.split('.')
+        file_pre = filename_splited[0]
+        file_suf = filename_splited[1]
+        with open(file_path, 'r') as f:
+            css_raw = f.read()
+        css_raw = do_invert(css_raw)
+        if args.write:
+            with open(file_path if args.override else f'{file_pre}.inverted.{file_suf}', 'w') as f:
+                f.write(css_raw)
+        else:
+            print(css_raw)
