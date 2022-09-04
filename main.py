@@ -154,6 +154,11 @@ if __name__ == '__main__':
 
         # Doing invert
         if args.combine:
+            matches = re.findall(const.css_media_reg, css_raw)
+            if matches:
+                confirm = input(f'Found media query in {file_path}, do you want to continue? (y/n) ')
+                if 'n' in confirm.lower():
+                    continue
             css_raw = combine(css_raw, do_invert(css_raw))
         else:
             css_raw = do_invert(css_raw)

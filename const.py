@@ -150,3 +150,5 @@ CSS_DARK}
 @media (prefers-color-scheme: light) {
 CSS_LIGHT}
 '''
+
+css_media_reg = r'@media\(prefers-color-scheme:(dark|light)\)'
