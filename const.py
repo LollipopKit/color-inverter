@@ -141,3 +141,12 @@ WhiteSmoke 	#F5F5F5
 Yellow 	#FFFF00
 YellowGreen 	#9ACD32
 '''
+
+css_dark_locator = 'CSS_DARK'
+css_light_locator = 'CSS_LIGHT'
+css_mix_template = r'''
+@media (prefers-color-scheme: dark) {
+CSS_DARK}
+@media (prefers-color-scheme: light) {
+CSS_LIGHT}
+'''

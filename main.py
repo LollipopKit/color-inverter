@@ -100,6 +100,15 @@ def convert_namaed_color_list():
         named_color_list.append([find[0].lower(), find[1]])
 
 
+def combine(css_light, css_dark) -> str:
+    return const.css_mix_template.replace(const.css_dark_locator, css_dark).replace(const.css_light_locator, css_light)
+
+
+def minify(css_raw: str) -> str:
+    css_raw = css_raw.replace(' ', '').replace('\n', '').replace('\t', '')
+    return css_raw
+
+
 def pri(pre: str, msg):
     if not debug:
         return
@@ -107,20 +116,24 @@ def pri(pre: str, msg):
 
 
 if __name__ == '__main__':
-    convert_namaed_color_list()
-
     parser = argparse.ArgumentParser(description='css color inverter')
-    parser.add_argument('input', type=str, help='input file path')
+    parser.add_argument('input', type=str, help='input path')
     parser.add_argument('-w', '--write', default=True, action='store_true', help='write result to output file')
     parser.add_argument('-v', '--verbose', default=False, action='store_true', help='verbose mode')
     parser.add_argument('-d', '--dir', default=False, action='store_true', help='input dir path')
     parser.add_argument('-o', '--override', default=False, action='store_true', help='override input file')
+    parser.add_argument('-c', '--combine', default=False, action='store_true', help='combine origin/inverted css into one file which support auto light/dark mode')
+    parser.add_argument('-m', '--minify', default=False, action='store_true', help='minify css')
     args = parser.parse_args()
 
     debug = args.verbose
     if args.input is None:
         print('No input file specified')
         sys.exit(1)
+
+    # Must do it first
+    convert_namaed_color_list()
+
     file_paths = []
     if args.dir:
         if not os.path.isdir(args.input):
@@ -136,14 +149,32 @@ if __name__ == '__main__':
     pri('file_paths', file_paths)
 
     for file_path in file_paths:
-        filename_splited = file_path.split('.')
-        file_pre = filename_splited[0]
-        file_suf = filename_splited[1]
         with open(file_path, 'r') as f:
             css_raw = f.read()
-        css_raw = do_invert(css_raw)
+
+        # Doing invert
+        if args.combine:
+            css_raw = combine(css_raw, do_invert(css_raw))
+        else:
+            css_raw = do_invert(css_raw)
+
+        if args.minify:
+            css_raw = minify(css_raw)
+
         if args.write:
-            with open(file_path if args.override else f'{file_pre}.inverted.{file_suf}', 'w') as f:
+            filename_splited = file_path.split('.')
+            file_pre = filename_splited[0]
+            file_suf = filename_splited[1]
+            filename_new = ''
+            if args.override:
+                filename_new = file_path
+            else:
+                if args.combine:
+                    filename_new = f'{file_pre}.mix.{file_suf}'
+                else:
+                    filename_new = f'{file_pre}.inverted.{file_suf}'
+            with open(filename_new, 'w') as f:
                 f.write(css_raw)
+            print(f'Successfully wrote to [{filename_new}].')
         else:
             print(css_raw)
