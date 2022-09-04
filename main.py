@@ -120,7 +120,7 @@ if __name__ == '__main__':
     parser.add_argument('input', type=str, help='input path')
     parser.add_argument('-w', '--write', default=True, action='store_true', help='write result to output file')
     parser.add_argument('-v', '--verbose', default=False, action='store_true', help='verbose mode')
-    parser.add_argument('-d', '--dir', default=False, action='store_true', help='input dir path')
+    parser.add_argument('-d', '--dir', default=False, action='store_true', help='input path is a dir')
     parser.add_argument('-o', '--override', default=False, action='store_true', help='override input file')
     parser.add_argument('-c', '--combine', default=False, action='store_true', help='combine origin/inverted css into one file which support auto light/dark mode')
     parser.add_argument('-m', '--minify', default=False, action='store_true', help='minify css')
@@ -162,17 +162,24 @@ if __name__ == '__main__':
             css_raw = minify(css_raw)
 
         if args.write:
+            # Set output file name
             filename_splited = file_path.split('.')
             file_pre = filename_splited[0]
             file_suf = filename_splited[1]
             filename_new = ''
             if args.override:
+                # Use origin name
                 filename_new = file_path
             else:
+                # Add suffix
+                name_addon = ''
                 if args.combine:
-                    filename_new = f'{file_pre}.mix.{file_suf}'
+                    name_addon += '_mix'
                 else:
-                    filename_new = f'{file_pre}.inverted.{file_suf}'
+                    name_addon += '_inv'
+                if args.minify:
+                    name_addon += '_min'
+                filename_new = f'{file_pre}{name_addon}.{file_suf}'
             with open(filename_new, 'w') as f:
                 f.write(css_raw)
             print(f'Successfully wrote to [{filename_new}].')

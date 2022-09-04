@@ -23,7 +23,7 @@ options:
   -h, --help      show this help message and exit
   -w, --write     write result to output file
   -v, --verbose   verbose mode
-  -d, --dir       input dir path
+  -d, --dir       input path is a dir
   -o, --override  override input file
   -c, --combine   combine origin/inverted css into one file which support auto light/dark mode
   -m, --minify    minify css
